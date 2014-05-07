@@ -58,8 +58,12 @@ mobile service for bicycle servicing, repairs, maintenance and new build
                     </ul>  
                     <p id="success">Thanks for your message! We will get back to you ASAP!</p>  
                     <form method="post" action="/takebooking">  
+
+                        <label for="email">Your Email Address: <span class="required">*</span></label>  
+                        <input type="email" id="email" name="email" value="" placeholder="Your Email Address" required autofocus onchange="echanged()"> 
+
                         <label for="name">Your Name: <span class="required">*</span></label>  
-                        <input type="text" id="name" name="name" value="" placeholder="Your Name" required autofocus>  
+                        <input type="text" id="name" name="name" value="" placeholder="Your Name" required>  
 
                         <label for="bike">Bike Details: </label>  
                         <textarea id="bike" name="bike" rows="2" placeholder="Tell us about your bike."/> </textarea>
@@ -73,8 +77,6 @@ mobile service for bicycle servicing, repairs, maintenance and new build
                         <hr>
                         <label>Contact Details ... so we can get back to you !</label>
                           
-                        <label for="email">Your Email Address: <span class="required">*</span></label>  
-                        <input type="email" id="email" name="email" value="" placeholder="Your Email Address" required> 
                           
                         <label for="telephone">Telephone: </label>  
                         <input type="tel" id="telephone" name="telephone" value="" />  
@@ -154,6 +156,26 @@ If urgent, use the bookings form above for a faster response, thanks.
 
           ga('create', 'UA-46390212-2', 'cycle2u.com.au');
           ga('send', 'pageview');
+
+          // Setup change function on email
+          // quick and dirty AJAX + jquery to populate the known fields 
+          function echanged() {
+            var em=$("#email").val()
+            $.post("getemail",
+                {email: em},
+                function(data) {
+                    var res = jQuery.parseJSON(data);
+                    console.log(em,data,res);
+                    if (typeof res === 'object') {
+                        $("#name").val(res.Name);
+                        $("#bike").val(res.Bike);
+                        $("#telephone").val(res.Tel);
+                        $("#address").val(res.Addr);
+                        console.log(res.Name);
+                        $("#message").focus();
+                    }
+                })
+          }
         </script>
 
     </body>

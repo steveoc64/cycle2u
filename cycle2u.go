@@ -262,6 +262,33 @@ func takeBookingHandler(w http.ResponseWriter, r *http.Request, Data *db.Col) {
 	return
 }
 
+type emailResponse struct {
+	Name string
+	Addr string
+	Bike string
+	Tel  string
+}
+
+// Given an email, return JSON with the details of this person
+func getEmailHandler(w http.ResponseWriter, r *http.Request, Data *db.Col) string {
+
+	emailAddr := r.FormValue("email")
+	log.Println("Looking up details for email", emailAddr)
+	contactID, myContact := contactsdb.LookupContact(Data, emailAddr)
+	log.Println(contactID, myContact)
+
+	if contactID > 0 {
+		contactDetails := emailResponse{
+			myContact["Name"].(string),
+			myContact["Addr"].(string),
+			myContact["Bike"].(string),
+			myContact["Tel"].(string)}
+		msg, _ := json.Marshal(contactDetails)
+		return string(msg)
+	}
+	return ""
+}
+
 // Main loop
 func main() {
 
@@ -272,6 +299,7 @@ func main() {
 	m := martini.Classic()
 	m.Map(initDB()) // Inject a pointer to the DB for all handlers
 	m.Get("/WorkshopData", dataSocketHandler)
+	m.Post("/getemail", getEmailHandler)
 	m.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return

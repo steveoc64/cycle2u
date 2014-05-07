@@ -434,7 +434,7 @@ nav a:hover {
     #contact-form textarea {  
         width:94%;  
         border: 1px solid #CEE1E8;  
-        margin-bottom:20px;  
+        margin-bottom:10px;  
         padding:4px;  
     }  
       
@@ -452,6 +452,8 @@ nav a:hover {
       
     #contact-form label {  
         display:block;  
+        font-weight:bold;  
+        font-style:oblique;  
     }  
       
     #contact-form .required {  

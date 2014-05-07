@@ -231,7 +231,7 @@ func LookupContact(Data *db.Col, email string) (uint64, map[string]interface{}) 
 	var myData map[string]interface{}
 
 	queryStr := `{"n": [ {"eq": "` + email + `", "in": ["Data,Email"]},{"eq": "Contact", "in": ["Type"]} ]}`
-	log.Println(queryStr)
+	//log.Println(queryStr)
 	var query interface{}
 	json.Unmarshal([]byte(queryStr), &query)
 	queryResult := make(map[uint64]struct{}) // query result (document IDs) goes into map keys
@@ -242,7 +242,7 @@ func LookupContact(Data *db.Col, email string) (uint64, map[string]interface{}) 
 
 	for id := range queryResult {
 		Data.Read(id, &myData)
-		log.Println(id, myData)
+		//log.Println(id, myData)
 		contactData := myData["Data"].(map[string]interface{})
 		theID := myData["@id"].(string)
 		contactData["@id"] = theID
@@ -285,6 +285,10 @@ func AddBooking(Data *db.Col, b BookingInfo, IPAddress string, theDate string) u
 	contactID, myContact = LookupContact(Data, b.Email)
 	if contactID > 0 {
 		log.Println("Existing contact", contactID, myContact)
+		err := Data.Update(contactID, DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true}))
+		if err != nil {
+			panic(err)
+		}
 	} else {
 		// New contact record
 		log.Println("New contact", b.Name, b.Email)
