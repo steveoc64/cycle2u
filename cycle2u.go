@@ -53,13 +53,13 @@ func initDB() *db.Col {
 		Data := myDB.Use("Contacts")
 		contactsdb.Init(Data)
 		log.Println("Created new database", dir)
-		contactsdb.LoadData(Data, "cycle2u.data")
+		//contactsdb.LoadData(Data, "cycle2u.data")
 		return Data
 	} else {
 		log.Println("Existing database loaded", dir)
 	}
 	Data := myDB.Use("Contacts")
-	//contactsdb.LoadData(Data, "cycle2u.data")
+	contactsdb.LoadData(Data, "cycle2u.data")
 	return Data
 }
 

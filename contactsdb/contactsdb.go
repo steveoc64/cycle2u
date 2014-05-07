@@ -36,6 +36,7 @@ type Booking struct {
 	Owner   string
 	What    string
 	Addr    string
+	Tel     string
 	BikeID  string
 	IDate   string // When the booking was made
 	JDate   string // when the job was done
@@ -311,7 +312,7 @@ func AddBooking(Data *db.Col, b BookingInfo, IPAddress string, theDate string) u
 	if theDate == "" {
 		theDate = time.Now().String()
 	}
-	myBooking := Booking{fmt.Sprintf("%d", contactID), "bikeservice", b.Address, fmt.Sprintf("%d", bikeID), theDate, "", "", IPAddress, b.Message}
+	myBooking := Booking{fmt.Sprintf("%d", contactID), "bikeservice", b.Address, b.Telephone, fmt.Sprintf("%d", bikeID), theDate, "", "", IPAddress, b.Message}
 	bookID, _ := Data.Insert(DataMap("Booking", myBooking))
 
 	return bookID
@@ -392,7 +393,7 @@ func slowAddBooking(Data *db.Col, b BookingInfo, IPAddress string, theDate strin
 	if theDate == "" {
 		theDate = time.Now().String()
 	}
-	myBooking := Booking{fmt.Sprintf("%d", contactID), "bikeservice", b.Address, fmt.Sprintf("%d", bikeID), theDate, "", "", IPAddress, b.Message}
+	myBooking := Booking{fmt.Sprintf("%d", contactID), "bikeservice", b.Address, b.Telephone, fmt.Sprintf("%d", bikeID), theDate, "", "", IPAddress, b.Message}
 	bookID, _ := Data.Insert(DataMap("Booking", myBooking))
 
 	// Clear the lookup cache
