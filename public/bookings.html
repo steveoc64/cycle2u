@@ -65,8 +65,8 @@ mobile service for bicycle servicing, repairs, maintenance and new build
                         <label for="name">Your Name: <span class="required">*</span></label>  
                         <input type="text" id="name" name="name" value="" placeholder="Your Name" required>  
 
-                        <label for="bike">Bike Details: </label>  
-                        <textarea id="bike" name="bike" rows="2" placeholder="Tell us about your bike."/> </textarea>
+                        <label for="bike">Bike Details: <span class="required">*</span></label>  
+                        <textarea id="bike" name="bike" rows="2" required placeholder="Tell us about your bike."/> </textarea>
    
                         <label for="enquiry">Type of Enquiry: </label>  
                         <select id="enquiry" name="enquiry">  
@@ -85,8 +85,8 @@ mobile service for bicycle servicing, repairs, maintenance and new build
                         <textarea id="address" name="address" rows=2 value="" /> </textarea>
 
                     
-                        <label for="message">Message: </label>  
-                        <textarea id="message" name="message" placeholder="Enter any additional details about the enquiry here." rows="4" ></textarea>  
+                        <label for="message">Message: <span class="required">*</span></label>  
+                        <textarea id="message" name="message" required placeholder="Enter any additional details about the enquiry here." rows="4" ></textarea>  
                           
                         <span id="loading"></span>  
                         <input type="submit" value="Submit" id="submit-button" />  
@@ -164,15 +164,21 @@ If urgent, use the bookings form above for a faster response, thanks.
             $.post("getemail",
                 {email: em},
                 function(data) {
-                    var res = jQuery.parseJSON(data);
-                    console.log(em,data,res);
-                    if (typeof res === 'object') {
-                        $("#name").val(res.Name);
-                        $("#bike").val(res.Bike);
-                        $("#telephone").val(res.Tel);
-                        $("#address").val(res.Addr);
-                        console.log(res.Name);
-                        $("#message").focus();
+                    if (data === "") {
+                        $("#name").val("");
+                        $("#bike").val("");
+                        $("#telephone").val("");
+                        $("#address").val("");
+                        $("#name").focus();                        
+                    } else {
+                        var res = jQuery.parseJSON(data);
+                        if (typeof res === 'object') {
+                            $("#name").val(res.Name);
+                            $("#bike").val(res.Bike);
+                            $("#telephone").val(res.Tel);
+                            $("#address").val(res.Addr);
+                            $("#message").focus();
+                        }
                     }
                 })
           }
