@@ -36,6 +36,7 @@ func toMap(thing interface{}) map[string]interface{} {
 // init the DB, and return a ref to the database collection
 func initDB() *db.Col {
 	rand.Seed(time.Now().UTC().UnixNano())
+	list.Init()
 
 	// Create and open database
 	dir := "cycle2u.database"
@@ -49,14 +50,17 @@ func initDB() *db.Col {
 
 	if err := myDB.Create("Contacts", 1); err == nil {
 		// This is a fresh DB so insert some default data
-		contactsData := myDB.Use("Contacts")
-		contactsdb.CreateData(contactsData)
+		Data := myDB.Use("Contacts")
+		contactsdb.Init(Data)
 		log.Println("Created new database", dir)
+		contactsdb.LoadData(Data, "cycle2u.data")
+		return Data
 	} else {
 		log.Println("Existing database loaded", dir)
 	}
-	myDB.Scrub("Contacts")
-	return myDB.Use("Contacts")
+	Data := myDB.Use("Contacts")
+	//contactsdb.LoadData(Data, "cycle2u.data")
+	return Data
 }
 
 // Pool of websocket connections
@@ -116,7 +120,7 @@ func dataSocketHandler(w http.ResponseWriter, r *http.Request, theData *db.Col) 
 	// Perform handshake and upgrade connection
 	conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
-		http.Error(w, "Not a websocket handshake", 400)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	} else if err != nil {
 		log.Println(err)
@@ -242,24 +246,41 @@ func dataSocketHandler(w http.ResponseWriter, r *http.Request, theData *db.Col) 
 	}
 }
 
+// Take a booking, stick it in the database, and then generate emails and SMS alerts
+func takeBookingHandler(w http.ResponseWriter, r *http.Request, Data *db.Col) {
+
+	b := contactsdb.BookingInfo{r.FormValue("name"),
+		r.FormValue("bike"),
+		r.FormValue("enquiry"),
+		r.FormValue("email"),
+		r.FormValue("telephone"),
+		r.FormValue("address"),
+		r.FormValue("message")}
+	log.Println(r.RemoteAddr, b)
+	contactsdb.AddBooking(Data, b, r.RemoteAddr, "")
+	http.Redirect(w, r, "/tookbooking.html", http.StatusFound)
+	return
+}
+
 // Main loop
 func main() {
 
 	flag.Parse()
-
 	connections = make(map[*websocket.Conn]bool)
 
 	// Classic defaults for webserver - serve up files from public dir
 	m := martini.Classic()
-	m.Map(initDB())
+	m.Map(initDB()) // Inject a pointer to the DB for all handlers
 	m.Get("/WorkshopData", dataSocketHandler)
-	m.NotFound(func() {
-		// handle not found
+	m.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	})
+	m.Post("/takebooking", takeBookingHandler)
 
 	// Run the actual webserver
 	addr := fmt.Sprintf(":%d", *port)
-	log.Println("ActionFront GameData Editor starting on port ", addr)
+	log.Println("Cycle2U Website starting on port ", addr)
 
 	http.ListenAndServe(addr, m)
 }

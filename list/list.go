@@ -105,3 +105,18 @@ func Lookup(col *db.Col, theEntity string, theKey string) map[string]map[string]
 	LookupCache[theEntity] = results
 	return results
 }
+
+func AddLookup(theEntity string, theKey string, theData map[string]interface{}) {
+	results := LookupCache[theEntity]
+
+	key := theData[theKey]
+	var keyString string
+	var isString bool
+
+	if keyString, isString = key.(string); !isString {
+		keyString = fmt.Sprint(key)
+	}
+	results[keyString] = theData
+
+	LookupCache[theEntity] = results
+}
