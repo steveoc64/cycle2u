@@ -41,7 +41,39 @@ mobile service for bicycle servicing, repairs, maintenance and new build
         <div class="main-container">
 
             <div class="main wrapper clearfix">
-                            <img src="images/logos.jpg" width="90%">
+                <!--
+                    <div id="loginform" align="right" class="clearfix">  
+                    <form method="post" action="/login">  
+                        <label for="email">Login</label>  
+                        <input type="email" id="email" name="email" value="" placeholder="Email"> 
+                        <input type="text" id="passwd" name="passwd" value="" onchange="login()">  
+                    </form> 
+                    </div>
+                    <div id="loggedin" align="right" class="clearfix" style="display:none">  
+                      Welcome Back Daboo7
+                    </div>
+                -->
+                  <script type="text/javascript">
+                  function login() {
+                    $.post("login",
+                        {email: $("#email").val(), passwd: $("#passwd").val()},
+                        function(data) {
+                            if (data === "") {
+                                $("#email").val("");
+                                $("#passwd").val("");
+                            } else {
+                                var res = jQuery.parseJSON(data);
+                                if (typeof res === 'object') {
+                                  console.log("logged in");
+                                  $("#loginform").hide();
+                                  $("#loggedin").show();
+                                }
+                            }
+                        })
+
+                  }
+                  </script>
+                  <img src="images/logos.jpg" width="90%">
 
                 <article>
 <!--

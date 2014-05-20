@@ -5,7 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"github.com/appio/websocket"
-	"github.com/codegangsta/martini"
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/binding"
+	"github.com/martini-contrib/render"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessions"
+	"github.com/martini-contrib/staticbin"
 	"github.com/steveoc64/cycle2u/contactsdb"
 	"github.com/steveoc64/cycle2u/list"
 	"github.com/steveoc64/tiedot/db"
@@ -288,6 +293,30 @@ func getEmailHandler(w http.ResponseWriter, r *http.Request, Data *db.Col) strin
 	return ""
 }
 
+type LoginStatus struct {
+	LoggedIn bool
+	Token    string
+}
+
+// Login with the given username and passwd
+func loginHandler(w http.ResponseWriter, r *http.Request, Data *db.Col) string {
+
+	emailAddr := r.FormValue("email")
+	passwd := r.FormValue("passwd")
+	log.Println("Looking up details for email", emailAddr)
+	contactID, myContact := contactsdb.LookupContact(Data, emailAddr)
+	log.Println(contactID, myContact)
+
+	if passwd != "" && contactID > 0 {
+		if myContact["Passwd"] == passwd {
+			status := LoginStatus{true, "A78337612"}
+			msg, _ := json.Marshal(status)
+			return string(msg)
+		}
+	}
+	return ""
+}
+
 // Main loop
 func main() {
 
@@ -296,13 +325,59 @@ func main() {
 
 	// Classic defaults for webserver - serve up files from public dir
 	m := martini.Classic()
-	m.Map(initDB()) // Inject a pointer to the DB for all handlers
-	m.Get("/WorkshopData", dataSocketHandler)
-	m.Post("/getemail", getEmailHandler)
-	m.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
+	m.Use(staticbin.Static("public", Asset))
+	//m := staticbin.Classic(Asset)
+
+	store := sessions.NewCookieStore([]byte("pancakes"))
+	store.Options(sessions.Options{
+		MaxAge: 0,
 	})
+	m.Use(render.Renderer())
+	m.Use(sessions.Sessions("cycle2u_session", store))
+	m.Use(sessionauth.SessionUser(GenerateAnonymousUser))
+	sessionauth.RedirectUrl = "/new-login"
+	sessionauth.RedirectParam = "new-next"
+
+	db := initDB()
+	m.Map(db) // Inject a pointer to the DB for all handlers
+	m.Get("/WorkshopData", dataSocketHandler)
+	m.Get("/workshop", sessionauth.LoginRequired, func(r render.Render, user sessionauth.User) {
+		r.HTML(200, "myworkshop", user.(*MyUserModel))
+	})
+
+	m.Get("/new-login", func(r render.Render) {
+		r.HTML(200, "login", nil)
+	})
+	m.Post("/new-login", binding.Bind(MyUserModel{}), func(session sessions.Session, postedUser MyUserModel, r render.Render, req *http.Request) {
+		// You should verify credentials against a database or some other mechanism at this point.
+		// Then you can authenticate this session.
+		user := MyUserModel{}
+		id, contact := contactsdb.LookupContact(db, postedUser.Username)
+		log.Println(id, contact)
+		//func LookupContact(Data *db.Col, email string) (uint64, map[string]interface{}) {
+
+		if id == 0 {
+			r.Redirect(sessionauth.RedirectUrl)
+			return
+		} else {
+			err := sessionauth.AuthenticateSession(session, &user)
+			if err != nil {
+				r.JSON(500, err)
+			}
+
+			params := req.URL.Query()
+			redirect := params.Get(sessionauth.RedirectParam)
+			r.Redirect(redirect)
+			return
+		}
+	})
+
+	m.Post("/getemail", getEmailHandler)
+	m.Post("/login", loginHandler)
+	//m.NotFound(func(w http.ResponseWriter, r *http.Request) {
+	//	http.Redirect(w, r, "/", http.StatusFound)
+	//	return
+	//})
 	m.Post("/takebooking", takeBookingHandler)
 
 	// Run the actual webserver

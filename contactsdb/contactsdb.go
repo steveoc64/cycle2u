@@ -21,6 +21,7 @@ type Contact struct {
 	Tel    string
 	Addr   string
 	Subbed bool
+	Passwd string
 }
 
 type Bike struct {
@@ -286,14 +287,15 @@ func AddBooking(Data *db.Col, b BookingInfo, IPAddress string, theDate string) u
 	contactID, myContact = LookupContact(Data, b.Email)
 	if contactID > 0 {
 		log.Println("Existing contact", contactID, myContact)
-		err := Data.Update(contactID, DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true}))
+		//		err := Data.Update(contactID, DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true, myContact["Passwd"].(string)}))
+		err := Data.Update(contactID, DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true, "daboo7"}))
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		// New contact record
 		log.Println("New contact", b.Name, b.Email)
-		contactID, _ = Data.Insert(DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true}))
+		contactID, _ = Data.Insert(DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true, ""}))
 	}
 	var bikeID uint64
 	var myBike map[string]interface{}
@@ -368,13 +370,13 @@ func slowAddBooking(Data *db.Col, b BookingInfo, IPAddress string, theDate strin
 		contactID, _ = strconv.ParseUint(myContact["@id"].(string), 0, 64)
 		if contactID > 0 {
 			// Update existing record
-			Data.Update(contactID, DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, myContact["Subbed"].(bool)}))
+			Data.Update(contactID, DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, myContact["Subbed"].(bool), myContact["Passwd"].(string)}))
 		}
 		log.Println("CID", contactID)
 	} else {
 		// New contact
 		log.Println("New contact", b.Name, b.Email)
-		contactID, _ = Data.Insert(DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true}))
+		contactID, _ = Data.Insert(DataMap("Contact", Contact{b.Name, b.Bike, b.Email, b.Telephone, b.Address, true, ""}))
 	}
 	var bikeID uint64
 	var myBike map[string]interface{}
