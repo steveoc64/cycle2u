@@ -15,14 +15,14 @@ function addContact(name,bike,email,addr,tel,msg,datetime,ip) {
 	    db.contacts.update({_id: myDocument._id},
 	   		{
 		   		// Add the bike to the document if not already there
-	   			$addToSet: { Bike: bike },
+	   			$addToSet: { bike: bike },
 
 			    // Add new booking to the bookings array for this contact
 	   			$push: {
-	   				Booking: {
-	   					Date: new Date(datetime),
-	   					IP: ip,
-	   					Message: msg
+	   				booking: {
+	   					date: new Date(datetime),
+	   					ip: ip,
+	   					message: msg
 	   				}
 	   			}
 	   		}
@@ -31,17 +31,17 @@ function addContact(name,bike,email,addr,tel,msg,datetime,ip) {
 	} else {
 		print("Entirely New Contact", email);
 		
-		db.contacts.insert({Name: name, 
-			Bike: [bike],
-			Email: email,
-			Address: addr,
-			Telephone: tel,
-			Booking: [{
-				Date: new Date(datetime),
-				IP: ip,
-				Message: msg
+		db.contacts.insert({name: name, 
+			bike: [bike],
+			email: email,
+			address: addr,
+			telephone: tel,
+			booking: [{
+				date: new Date(datetime),
+				ip: ip,
+				message: msg
 			}],
-			Subscribe: ['Cycle2u','LaMusette']
+			subscribe: ['Cycle2u','LaMusette']
 		});
 	}
 
@@ -60,14 +60,14 @@ function addNoContact(name,bike,email,addr,tel,msg,datetime,ip) {
 	    db.contacts.update({_id: myDocument._id},
 	   		{
 		   		// Add the bike to the document if not already there
-	   			$addToSet: { Bike: bike },
+	   			$addToSet: { bike: bike },
 
 			    // Add new booking to the bookings array for this contact
 	   			$push: {
-	   				Booking: {
-	   					Date: new Date(datetime),
-	   					IP: ip,
-	   					Message: msg
+	   				booking: {
+	   					date: new Date(datetime),
+	   					ip: ip,
+	   					message: msg
 	   				}
 	   			}
 	   		}
@@ -76,17 +76,17 @@ function addNoContact(name,bike,email,addr,tel,msg,datetime,ip) {
 	} else {
 		print("Entirely Avoidable Contact", email);
 		
-		db.contacts.insert({Name: name, 
-			Bike: [bike],
-			Email: email,
-			Address: addr,
-			Telephone: tel,
-			Booking: [{
-				Date: new Date(datetime),
-				IP: ip,
-				Message: msg
+		db.contacts.insert({name: name, 
+			bike: [bike],
+			email: email,
+			address: addr,
+			telephone: tel,
+			booking: [{
+				date: new Date(datetime),
+				ip: ip,
+				message: msg
 			}],
-			Subscribe: []
+			subscribe: []
 		});
 	}
 
