@@ -1,18 +1,24 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
-	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/client"
 	"log"
 	"net/mail"
 	"net/smtp"
 	"time"
 
+	"github.com/emersion/go-imap"
+	"github.com/emersion/go-imap/client"
+
 	gomail "gopkg.in/jpoehls/gophermail.v0"
 )
 
 func main() {
+	main_manual()
+}
+
+func main_imap() {
 	log.Println("Connecting to server...")
 
 	// Connect to server
@@ -34,7 +40,7 @@ func main() {
 	// List mailboxes
 	mailboxes := make(chan *imap.MailboxInfo, 10)
 	done := make(chan error, 1)
-	go func () {
+	go func() {
 		done <- c.List("", "*", mailboxes)
 	}()
 
@@ -82,7 +88,7 @@ func main() {
 	log.Println("Done!")
 }
 
-func main4() {
+func main_simple() {
 	var (
 		from       = "bookings@cycle2u.com.au"
 		msg        = []byte("a test message")
@@ -100,27 +106,35 @@ func main4() {
 	}
 }
 
-func main3() {
+func main_manual() {
 	// Connect to the remote SMTP server.
-	c, err := smtp.Dial("mail.cycle2u.com.au:25")
+	c, err := smtp.Dial("mail.cycle2u.com.au:587")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("dial " + err.Error())
 	}
 
 	if err := c.Hello("mail.cycle2u.com.au"); err != nil {
-		log.Fatal(err)
+		log.Fatal("hello " + err.Error())
 	}
 
-	//if err := c.Auth(smtp.CRAMMD5Auth("paul","cappers11")); err != nil {
-	//log.Fatal(err)
+	config := &tls.Config{
+		ServerName:         "mail.cycle2u.com.au",
+		InsecureSkipVerify: true,
+	}
+	if err := c.StartTLS(config); err != nil {
+		log.Fatal("starttls " + err.Error())
+	}
+
+	//if err := c.Auth(smtp.CRAMMD5Auth("paul", "cappers11")); err != nil {
+	//	log.Fatal(err)
 	//}
 
-	if err := c.Auth(smtp.PlainAuth("", "paul", "cappers11", "mail.cycle2u.com.au")); err != nil {
-		log.Fatal(err)
+	if err := c.Auth(smtp.PlainAuth("", "paul@cycle2u.com.au", "cappers11", "mail.cycle2u.com.au")); err != nil {
+		log.Fatal("auth " + err.Error())
 	}
 
 	// Set the sender and recipient first
-	if err := c.Mail("bookings@cycle2u.com.au"); err != nil {
+	if err := c.Mail("paul@cycle2u.com.au"); err != nil {
 		log.Fatal(err)
 	}
 	if err := c.Rcpt("paul@cycle2u.com.au"); err != nil {
@@ -148,7 +162,7 @@ func main3() {
 	}
 }
 
-func main2() {
+func main_gomail() {
 	println("cycleserver")
 	m := &gomail.Message{}
 	m.SetFrom("Cycle2U Booking <bookings@cycle2u.com.au>")
